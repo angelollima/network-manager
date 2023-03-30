@@ -1,5 +1,20 @@
 #!/bin/bash
 
+passwordUser=""
+
+termsFile="/home/angelo/Documentos/projects/network-manager/termsFile.txt"
+TermsConditions=$(zenity --text-info --title="Licença" --filename=$termsFile --checkbox="Eu li e aceito os termos.")
+
+if [ "$TermsConditions" == "FALSE" ]
+then
+  # Usuário clicou em "Cancelar"
+  exit 1
+else
+  # Usuário clicou em "Eu li e aceito os termos"
+  response=$(zenity --password)
+  passwordUser=$(echo "$response" | cut -f1 -d "|")
+fi
+
 while true; do
     OPCAO=$(zenity --list --width=1000 --height=650 --title "Gerenciador de Rede" --column "Opção" --column "Descrição" \
         "Configurar nome da máquina" "Configura o nome da máquina" \
@@ -25,66 +40,71 @@ while true; do
         "Sair" "Sai do Gerenciador de Rede")
     case $OPCAO in
         "Configurar nome da máquina")
-            # código para configurar o nome da máquina
+            nomeHostname=$(hostname)
+            setHostname=$(zenity --entry --title="Configurar nome da Máquina (Hostname)")
+
+            if [ $nomeHostname != $setHostname ]
+              then
+                echo $passwordUser | sudo -S -u root hostname $setHostname
+            else
+                zenity --warning --text="O novo nome não pode ser igual ao antigo nome!"
+            fi
             ;;
         "Exibir nome da máquina")
-            nomeHostname=$(hostname)
-            zenity --info --title "Nome da Máquina" --text="O nome da máquina é $nomeHostname."
+            hostnameInfo=$(hostname)
+            zenity --info --title "Informando o nome da Máquina (Hostname)" --text="O Nome da Máquina (Hostname) é $hostnameInfo."
             ;;
         "Configurar endereço IP")
-            # código para configurar um endereço IP utilizando o comando ip
             ;;
         "Visualizar configurações de interfaces")
-          interfacesConfig=$(ip address)
-            zenity --info --title "Configurações de Interfaces" --text="$interfacesConfig"
+            interfacesConfig=$(ip address)
+            zenity --info --title "Visualização das Interfaces" --text="\n ${interfacesConfig}"
             ;;
         "Criar rota padrão")
-            # código para criar uma rota padrão para o roteador informado utilizando o comando ip
             ;;
         "Remover rota padrão")
-            # código para remover a rota padrão criada utilizando o comando ip
             ;;
         "Visualizar rotas")
-            # código para visualizar as rotas configuradas no sistema utilizando o comando ip
+            rotasConfig=$(ip route)
+            zenity --info --title "Visualização das rotas" --text="\n ${rotasConfig}"
             ;;
         "Desativar interface")
-            # código para desativar a interface de rede citada pelo usuário
             ;;
         "Ativar interface")
-            # código para ativar a interface de rede citada pelo usuário
             ;;
         "Renovar empréstimo DHCP")
-            # código para renovar o empréstimo de endereço IP junto ao servidor DHCP para uma interface citada pelo usuário
             ;;
         "Gravar servidor DNS")
-            # código para gravar o endereço do servidor DNS no arquivo de configuração
             ;;
         "Mostrar configuração de servidores DNS")
-            # código para mostrar o arquivo com a configuração dos servidores DNS do sistema
+            servidorDns=$(cat /etc/resolv.conf)
+            zenity --info --title "Configuração DNS" --text="\n ${servidorDns}"
             ;;
         "Resolver nome em IP")
-            # código para resolver um nome fornecido pelo usuário em um endereço IP
             ;;
         "Exibir tabela arp")
-            # código para exibir a tabela arp do computador do usuário utilizando o comando ip
+            tabelaArp=$(arp) #ip neigh show / ip arp não funciona no meu notebook
+            zenity --info --title "Tabela Ar" --text="\n ${tabelaArp}" --width 500 --height 200
             ;;
         "Criar entrada arp estática")
-            # código para criar uma entrada estática na tabela arp do computador utilizando o comando ip
             ;;
         "Remover entrada arp estática")
-            # código para remover uma entrada estática na tabela arp do computador utilizando o comando ip
             ;;
         "Pingar computador")
-            # código para pingar um computador fornecido pelo usuário com o valor de TTL e a quantidade de pacotes fornecidos por ele
+            ipUsuario=$(zenity --entry --text "Digite o endereço IP:")
+            ttlUsuario=$(zenity --entry --text "Digite o valor TTL:")
+            pingRequerimento=$(ping -t $ttlUsuario $ipUsuario)
+            zenity --info --title "Ping" --text="\n ${pingRequerimento}"
             ;;
         "Pingar computador com tamanho")
-            # código para pingar um computador fornecido pelo usuário com tamanho e quantidade de pacotes fornecidos por ele
             ;;
         "Instalar programa")
-            # código para instalar um programa no sistema utilizando o comando apt
+            #appUsuario=$(zenity --entry --text "Digite o endereço IP:")
+            nomeAplicativo=$(zenity --entry --text "Qual aplicativo deseja instalar?")
+            sudo apt-get install $nomeAplicativo | zenity --progress --auto-close --pulsate --text "Instalando $nomeAplicativo"
+            zenity --info --text="$nomeAplicativo foi instalado com sucesso."
             ;;
         "Remover programa")
-            # código para remover um programa do sistema utilizando o comando apt
             ;;
         "Sair")
             exit 0
