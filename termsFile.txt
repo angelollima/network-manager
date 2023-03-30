@@ -1,0 +1,1 @@
+A Aplicação necessita de acesso de super-usuário (root) apara algumas funcionalidades, se você permitir acesso, você estará concordando em termos acesso a sua senha de super-usuário, conhecido como root.
